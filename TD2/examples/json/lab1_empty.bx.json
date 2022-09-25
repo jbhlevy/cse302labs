@@ -1,0 +1,1 @@
+{"provenance": "<stdin>", "source": "def main() {}", "ast": [["<decl:proc>", {"position": {"start": [], "end": []}, "name": ["<name>", {"position": {"start": [], "end": []}, "value": "main"}], "arguments": [], "returntype": null, "body": []}]]}
