@@ -312,7 +312,7 @@ def test2(lexer, parser, test_string):
 
 ########################
 #ENTRY POINT 
-#main() #In order to usee the tester file, please comment out this line
+main() #In order to use the tester file, please comment out this line
 
 # ========================================= EOF =========================================================================
 
