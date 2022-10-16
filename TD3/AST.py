@@ -2,8 +2,11 @@
 This file contains the implementation of the class structure used to convert from
 BX -> ast.json
 ast.json -> tac.json
+Every instance inherits from the most basic Node class. 
+When then distinguish two types of classes, Expressions and Statements. 
+Classes implementation is described as they appear in the file. 
 """
-# ====== Used in BX --> AST convrsion ======================
+# =========== Table used in BX --> AST convrsion ==================
 
 binop_table = {
     "+": "addition",
@@ -18,26 +21,8 @@ binop_table = {
     "<<": "logical-shift-left",
 }
 
-#à modifier:
-op_codes_bis = {'PLUS': 'add',
-            'MINUS': 'sub',
-            'TIMES': 'mul',
-            'DIV': 'div',
-            'MODULUS': 'mod',
-            'BITAND': 'and',
-            'BITOR': 'or',
-            'BITXOR': 'xor',
-            'BITSHL': 'shl',
-            'BITSHR': 'shr',
-            'BITCOMPL': 'not',
-            'UMINUS': 'neg',
-            'EQ': 'je',
-            'NEQ': 'jne',
-            'LT': 'jl',
-            'LTEQ': 'jle',
-            'GT': 'jg',
-            'GTEQ': 'jge'}
 
+# =========== Table used in AST --> TAC convrsion =================
 op_codes = {'+': 'add',
             '-': 'sub',
             '*': 'mul',
@@ -57,10 +42,11 @@ op_codes = {'+': 'add',
             '>': 'jg',
             '>=': 'jge'}
 
-#modifié:
+# ================================================================================
 
 import enum
 
+# Type class used when performing type checking between int or booleans. 
 class Type(enum.Enum):
 
   INT  = enum.auto()
@@ -73,19 +59,19 @@ class Type(enum.Enum):
       return "bool"
     raise ValueError
 
-
+# Global variables used to track all program variables 
 lvars = []
 lvars_line = {}
 
 def restore():
+    #Function to reset global variables
     global lvars, lvars_line
     lvars = []
     lvars_line = {}
 
-
-#parse tree node
+# ================================================================================
+# Base Node Class 
 class Node:
-
   vardecls = {}
   fname = ''
 
@@ -146,9 +132,19 @@ class ExpressionVar(Expression):
         pass
 
     def syntax_check(self, fname):
-      # var must already be declared with an earlier vardecl
-      if self.name not in lvars:
-         raise ValueError(f'{fname}:line {self.sloc}:Error:Undeclared variable "{self.name}"')
+        pass
+
+
+
+
+
+    #           if self.var.name in var_types[-1]:
+    #       raise ValueError(f'Variable {self.var.name} already declared at line {self.sloc}')
+    #     self.expr.type_check(var_types)
+    #     self.var.ty = self.expr.ty
+    #     var_types[-1][self.var.name] = self.var.ty
+    #   if self.name not in lvars:
+    #      raise ValueError(f'{fname}:line {self.sloc}:Error:Undeclared variable "{self.name}"')
 
     @property
     def js_obj(self):
