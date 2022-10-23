@@ -22,6 +22,7 @@ def bx_to_tac(source_name: str, source: str, opts=None):
         with open(dest_name, 'w') as dest_file:
             json.dump(js_ast, dest_file, indent=2)
         print(f'{source_name} -> {dest_name}')
+    ## Call type_check method on ast_object (will recursively check the whole AST)
     prog = Prog(ast_object, 'tmm')
     if opts.keep_tac:
         js_tac = prog.js_obj

@@ -47,8 +47,9 @@ class Sloc:
             err_msg = f'\n{self.source.data}\nLine:{self.lineno}.Column:{colno}:\n'
         severity = max(0, min(4, severity))
         err_msg += Sloc.severity_map[severity] + msg
-        print(err_msg)
-        if err: err
+        #print(err_msg)
+        if err:
+            raise SyntaxError(err_msg)
 
 # ================================================================================
 """
@@ -306,8 +307,9 @@ class Parser:
         """ stmt : VAR IDENT ASSIGN expr COLON INT SEMICOLON"""
         p[0] = ast.Vardecl(
             self.sloc(p, 1), 
-            ast.ExpressionVar(self.sloc(p, 2), p[2], p[6]),
-            p[4])
+            ast.ExpressionVar(self.sloc(p, 2), p[2], ast.Type.INT),
+            p[4],
+            p[6])
 
     def p_stmt_block(self, p):
         #  p[0]   p[1]
