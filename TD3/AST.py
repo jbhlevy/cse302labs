@@ -2,8 +2,11 @@
 This file contains the implementation of the class structure used to convert from
 BX -> ast.json
 ast.json -> tac.json
+Every instance inherits from the most basic Node class. 
+When then distinguish two types of classes, Expressions and Statements. 
+Classes implementation is described as they appear in the file. 
 """
-# ====== Used in BX --> AST convrsion ======================
+# =========== Table used in BX --> AST convrsion ==================
 
 binop_table = {
     "+": "addition",
@@ -18,26 +21,8 @@ binop_table = {
     "<<": "logical-shift-left",
 }
 
-#à modifier:
-op_codes_bis = {'PLUS': 'add',
-            'MINUS': 'sub',
-            'TIMES': 'mul',
-            'DIV': 'div',
-            'MODULUS': 'mod',
-            'BITAND': 'and',
-            'BITOR': 'or',
-            'BITXOR': 'xor',
-            'BITSHL': 'shl',
-            'BITSHR': 'shr',
-            'BITCOMPL': 'not',
-            'UMINUS': 'neg',
-            'EQ': 'je',
-            'NEQ': 'jne',
-            'LT': 'jl',
-            'LTEQ': 'jle',
-            'GT': 'jg',
-            'GTEQ': 'jge'}
 
+# =========== Table used in AST --> TAC convrsion =================
 op_codes = {'+': 'add',
             '-': 'sub',
             '*': 'mul',
@@ -57,10 +42,11 @@ op_codes = {'+': 'add',
             '>': 'jg',
             '>=': 'jge'}
 
-#modifié:
+# ================================================================================
 
 import enum
 
+# Type class used when performing type checking between int or booleans. 
 class Type(enum.Enum):
 
   INT  = enum.auto()
@@ -73,68 +59,29 @@ class Type(enum.Enum):
       return "bool"
     raise ValueError
 
-
+# Global variables used to track all program variables 
 lvars = []
 lvars_line = {}
 
 def restore():
+    #Function to reset global variables
     global lvars, lvars_line
     lvars = []
     lvars_line = {}
 
-
-#parse tree node
+# ================================================================================
+# Base Node Class 
 class Node:
-
   vardecls = {}
   fname = ''
 
   def __init__(self, sloc):
-      #source location
       self.sloc = sloc
-
-  # def syntax_error(self, msg, errfn):
-  #   if self.sloc is None:
-  #     print('Error:' + msg)
-  #   else:
-  #     #lexpos : index of the token relative to the start of the input text
-  #     lineno, lexpos = self.sloc  #info about the location of the token
-  #     errfn(lineno, lexpos, msg)
-  #   raise SyntaxError(msg)
-
 
 class Expression(Node):
     def __init__(self, sloc):
         super().__init__(sloc)
-
-    # @staticmethod
-    # def load(js_obj):
-    #     if not isinstance(js_obj, list):
-    #       return None
-    #     if len(js_obj) > 1:
-    #       sloc = js_obj[1]
-    #     else:
-    #       None
-    #     if js_obj[0] == '<expression:var>':
-    #       return ExpressionVar(sloc, js_obj[1]['name'][1]['value'])
-    #     elif js_obj[0] == '<lvalue:var>':
-    #       return ExpressionVar(sloc, js_obj[1]['name'][1]['value'])
-    #     elif js_obj[0] =='<expression:call>':
-    #       return Expression.load(sloc, js_obj[1]['arguments'][0])
-    #     elif js_obj[0] == '<expression:int>':
-    #       return ExpressionInt(sloc, js_obj[1]['value'])
-    #     elif js_obj[0] == '<expression:uniop>':
-    #       operator = js_obj[1]['operator'][1]['value']
-    #       argument = Expression.load(js_obj[1]['argument'])
-    #       return ExpressionUniOp(sloc, operator, argument)
-    #     elif js_obj[0] == '<expression:binop>':
-    #       operator = js_obj[1]['operator'][1]['value']
-    #       left = Expression.load(js_obj[1]['left'])
-    #       right = Expression.load(js_obj[1]['right'])
-    #       return ExpressionBinOp(sloc, operator, left, right)lexpr.op
-    #     else:
-    #       return None
-
+        self.type = None 
 
 class ExpressionVar(Expression):
     def __init__(self, sloc, name, type):
@@ -143,12 +90,16 @@ class ExpressionVar(Expression):
       self.type = type
 
     def type_check(self, var_types):
-        pass
+        self.type = None 
+        for scope in reversed(var_types):
+            if self.name in scope.keys(): 
+                self.type = scope[self.name]
+        if self.type is None:
+            raise ValueError(f"Unknown variable: {self.name}")
+        
 
     def syntax_check(self, fname):
-      # var must already be declared with an earlier vardecl
-      if self.name not in lvars:
-         raise ValueError(f'{fname}:line {self.sloc}:Error:Undeclared variable "{self.name}"')
+        pass
 
     @property
     def js_obj(self):
@@ -178,10 +129,10 @@ class ExpressionInt(Expression):
     def __init__(self, sloc, value):
         super().__init__(sloc)
         self.value = value
-        self.type = 'int'
+        #self.type = 'int'
 
     def type_check(self, var_types):
-        pass
+        self.type = Type.INT
 
     def syntax_check(self, fname):
         pass
@@ -214,20 +165,20 @@ class ExpressionUniOp(Expression):
     def type_check(self, var_types):
         self.argument.type_check(var_types)
 
-        if self.operator in {'PLUS', 'MINUS', 'TIMES', 'DIV',
-                       'MODULUS', 'BITAND', 'BITOR', 'BITXOR',
-                       'BITSHL', 'BITSHR', 'UMINUS', 'NEG', 'BITCOMPL'
-                       } and (self.argument.type == 'int' ):
-            self.type = 'int'
-        elif self.operator in {'EQ', 'NEQ',
-                         'LT', 'LTEQ', 'GT', 'GTEQ'
-                         } and (self.argument.type == 'int'):
-            self.type = 'bool'
-        elif self.operator in {'AND', 'OR', 'NOT'
-                         } and (self.argument.type == 'bool'):
-            self.type = 'bool'
+        if self.operator in {'-.', '~', '!'} and (self.argument.type == Type.INT ): 
+            self.type = Type.INT
+        elif self.operator in {'!'} and (self.argument.type == Type.BOOL ): 
+            self.type = Type.BOOL
+        elif self.operator in {'-.', '~',} and (self.argument.type == Type.BOOL ):
+            self.type = Type.INT
+        
+        # elif self.operator in {'EQ', 'NEQ', 'LT', 'LTEQ', 'GT', 'GTEQ'} and (self.argument.type == 'int'):
+        #     self.type = 'bool'
+        # elif self.operator in {'AND', 'OR', 'NOT'
+        #                  } and (self.argument.type == 'bool'):
+        #     self.type = 'bool'
         else:
-            raise TypeError(f'Operator {self.operator} not defined for argument {self.argument} with type {self.argument.type} at line {self.sloc}')
+            raise TypeError(f'Operator {self.operator} not defined for argument {self.argument} with type {self.argument.type} at line {self.sloc.lineno}')
 
     def syntax_check(self, fname):
         self.argument.syntax_check(fname)
@@ -279,37 +230,26 @@ class ExpressionBinOp(Expression):
         return s
 
     def type_check(self, var_types):
+        #print("bino", var_types)
         self.left.type_check(var_types)
-        if self.left in {'PLUS', 'MINUS', 'TIMES', 'DIV',
-                       'MODULUS', 'BITAND', 'BITOR', 'BITXOR',
-                       'BITSHL', 'BITSHR', 'UMINUS', 'NEG', 'BITCOMPL'
-                       } and (self.left.type == 'int' ):
-            self.type = 'int'
-        elif self.left in {'EQ', 'NEQ',
-                         'LT', 'LTEQ', 'GT', 'GTEQ'
-                         } and (self.left.type == 'int'):
-            self.type = 'bool'
-        elif self.operator in {'AND', 'OR', 'NOT'
-                         } and (self.left.type == 'bool'):
-            self.type = 'bool'
+        if self.operator in {'+', '-', '*', '/',
+                       '%', '&', '|', '^',
+                       '<<', '>>',} and (self.left.type == Type.INT ): self.type = Type.INT
+        elif self.operator in {'==', '!=','<', '<=', '>', '>='} and (self.left.type == Type.INT): 
+            self.type = Type.BOOL
+        elif self.operator in {'&&', '||', '=='} and (self.left.type == Type.BOOL): self.type = Type.BOOL
         else:
-            raise TypeError(f'Operator {self.operator} not defined for argument {self.left} with type {self.left.type} at line {self.sloc}')
+            raise TypeError(f'Operator {self.operator} not defined for argument {self.left} with type {self.left.type} at line {self.sloc.lineno}')
 
         self.right.type_check(var_types)
-        if self.right in {'PLUS', 'MINUS', 'TIMES', 'DIV',
-                       'MODULUS', 'BITAND', 'BITOR', 'BITXOR',
-                       'BITSHL', 'BITSHR', 'UMINUS', 'NEG', 'BITCOMPL'
-                       } and (self.right.type == 'int' ):
-            self.type = 'int'
-        elif self.right in {'EQ', 'NEQ',
-                         'LT', 'LTEQ', 'GT', 'GTEQ'
-                         } and (self.right.type == 'int'):
-            self.type = 'bool'
-        elif self.operator in {'AND', 'OR', 'NOT'
-                         } and (self.right.type == 'bool'):
-            self.type = 'bool'
+        if self.operator in {'+', '-', '*', '/','%', '&', '|', '^','<<', '>>',} and (self.right.type == Type.INT ):
+            self.type = Type.INT
+        elif self.operator in {'==', '!=','<', '<=', '>', '>='} and (self.right.type == Type.INT): 
+            self.type = Type.BOOL
+        elif self.operator in {'&&', '||', '=='} and (self.right.type == Type.BOOL): 
+            self.type = Type.BOOL
         else:
-            raise TypeError(f'Operator {self.operator} not defined for argument {self.right} with type {self.right.type} at line {self.sloc}')
+            raise TypeError(f'Operator {self.operator} not defined for argument {self.right} with type {self.right.type} at line {self.sloc.lineno}')
 
 
     def syntax_check(self, fname):
@@ -346,10 +286,10 @@ class Bool(Expression):
     def __init__(self, sloc, value: bool):
         super().__init__(sloc)
         self.value = value
-        self.type = 'bool'
+        self.type = Type.BOOL
 
     def type_check(self, var_types):
-        pass
+        self.type = Type.BOOL
 
     def syntax_check(self, fname):
         pass
@@ -372,27 +312,12 @@ class Statement(Node):
         pass
 
     def lookup_variable_type(self, var, var_types):
+        #print("var:", var)
         for scope in reversed(var_types):
+            #print(f"scope:{scope}")
             if var in scope:
                 return scope[var]
-        raise ValueError(f'Variable {var} not in scope at line {self.sloc}')
-
-#     @staticmethod
-#     def load(js_obj):
-#         if not isinstance(js_obj, list):
-#             return None
-#         if len(js_obj) > 1:
-#             sloc = js_obj[1]
-#         else:
-#             sloc = None
-#         if js_obj[0] == '<statement:assign>':
-#             return Assign(sloc, Expression.load(js_obj[1]['lvalue']), Expression.load(js_obj[1]['rvalue']))
-#         elif js_obj[0] == '<statement:eval>':
-#             js_obj = js_obj[1]['expression']
-#             return Print(sloc, Expression.load(js_obj))
-#         else:
-#             return None
-
+        raise ValueError(f'Variable {var} not in scope at line {self.sloc.lineno}')
 
 class Block(Statement):
     def __init__(self, sloc, stmts):
@@ -400,6 +325,7 @@ class Block(Statement):
         self.stmts = stmts
 
     def type_check(self, var_types):
+        #var types is initialised to be an empty list 
         var_types.append(dict())
         for stmt in self.stmts:
             stmt.type_check(var_types)
@@ -421,17 +347,22 @@ class Block(Statement):
 
 
 class Vardecl(Statement):
-    def __init__(self, sloc, var, expr):
+    def __init__(self, sloc, var, expr, type):
         super().__init__(sloc)
         self.var = var
         self.expr = expr
+        self.type = Type.INT
 
     def type_check(self, var_types):
-        if self.var.name in var_types[-1]:
-          raise ValueError(f'Variable {self.var.name} already declared at line {self.sloc}')
+        if self.type != Type.INT:
+            raise TypeError(f'Variable of dissalowed type:  {self.type}')
         self.expr.type_check(var_types)
-        self.var.ty = self.expr.ty
-        var_types[-1][self.var.name] = self.var.ty
+        if self.expr.type != Type.INT:
+            raise TypeError(f'assignement has wrong type, expected int and got {self.expr.type}')
+        if self.var.name in var_types[-1].keys():
+          raise ValueError(f'Variable {self.var.name} already declared at line {self.sloc.lineno}')
+        var_types[-1][self.var.name] = self.var.type
+        self.var.type_check(var_types)
 
     def syntax_check(self, fname):
       global lvars
@@ -486,10 +417,12 @@ class Assign(Statement):
         self.rhs = rhs
 
     def type_check(self, var_types):
-        var_type = self.lookup_variable_type(self.var.name, var_types)
-        self.expr.type_check(var_types)
-        if var_type != self.expr.ty:
-            raise TypeError(f"Assignment of variable '{self.var.name}' of type '{var_type}' to expr of type '{self.expr.ty}' at line {self.sloc}")
+        #print("Assign in the while, lookup var count")
+        var_type = self.lookup_variable_type(self.lhs.name, var_types)
+        #print("After lookup:", self.rhs)
+        self.rhs.type_check(var_types)
+        if var_type != self.rhs.type:
+            raise TypeError(f"Assignment of variable '{self.lhs.name}' of type '{var_type}' to expr of type '{self.rhs.type}' at line {self.sloc.lineno}")
 
     def syntax_check(self, fname):
         self.lhs.syntax_check(fname)
@@ -536,9 +469,9 @@ class Print(Statement):
         self.arg = arg
 
     def type_check(self, var_types):
-        self.expr.type_check(var_types)
-        if self.expr.type != 'int':
-            raise TypeError(f'Can only print INT, not {self.expr.ty}, at line {self.sloc}')
+        self.arg.type_check(var_types)
+        if self.arg.type != Type.INT:
+            raise TypeError(f'Can only print INT, not {self.expr.type}, at line {self.sloc.lineno}')
 
     def syntax_check(self, fname):
       self.arg.syntax_check(fname)
@@ -591,7 +524,7 @@ class IfElse(Statement):
 
     def type_check(self, var_types):
         self.condition.type_check(var_types)
-        if self.condition.type != 'bool':
+        if self.condition.type != Type.BOOL:
             raise TypeError(f'IfElse cannot be of type {self.condition.type} at line {self.sloc},  must be of type bool')
         self.block.type_check(var_types)
         self.ifrest.type_check(var_types)
@@ -607,23 +540,6 @@ class IfElse(Statement):
                 'block': self.block.js_obj,
                 'ifrest': self.ifrest.js_obj}
 
-    #@property
-    # def statement_to_json(self):
-    #     return [
-    #         "<statement:ifelse>",
-    #         {
-    #             "position": {
-    #                 "start": [],
-    #                 "end": []
-    #             }
-    #             "condition": [
-    #                 f"<expression:{str()}"
-    #             ]
-    #         }
-
-    #     ]
-
-
 class While(Statement):
     def __init__(self, sloc, condition: Expression, block: Block):
         super().__init__(sloc)
@@ -632,8 +548,10 @@ class While(Statement):
 
     def type_check(self, var_types):
         self.condition.type_check(var_types)
-        if self.condition.ty != 'bool':
-            raise TypeError(f'WHILE cannot be of type {self.condition.ty} at line {self.sloc}, must be of type BOOL')
+        #("checked conditions")
+        #print("var types:", var_types)
+        if self.condition.type != Type.BOOL:
+            raise TypeError(f'WHILE cannot be of type {self.condition.type} at line {self.sloc.lineno}, must be of type BOOL')
         self.block.type_check(var_types)
 
     def syntax_check(self, fname):
@@ -674,28 +592,7 @@ class Program(Node):
     super().__init__(sloc)
     self.block = block
     self.lvars = lvars
-    #self.type_check([])
-
-
-  # @staticmethod
-  # def load(js_obj):
-  #   assert isinstance(js_obj, list)
-  #   if len(js_obj) > 1:
-  #       sloc = js_obj[1]
-  #   else:
-  #       sloc = None
-  #   js_obj = js_obj[0]
-  #   assert len(js_obj) == 2
-  #   js_obj = js_obj[1]
-  #   assert len(js_obj) == 5
-  #   section = js_obj['body'][:]
-  #   stmts = []
-  #   while len(section) > 0:
-  #     stmtt = block.pop(0)
-  #     stmt = Statement.load(stmtt)
-  #     assert stmt is not None, stmtt
-  #     stmts.append(stmt)
-  #   return Program(sloc, stmts)
+    self.type_check([])
 
   def type_check(self, var_types):
     self.block.type_check(var_types)

@@ -1,0 +1,11 @@
+def main(){
+	var x = 0 : int;
+	//var x = 12 : int;
+	//var y = true : int;
+	var z = (1 +2 ) : int; 
+	x = 2*z;
+	print(x);
+	//print(y);
+	print(z);
+	x = true || 1;	
+}

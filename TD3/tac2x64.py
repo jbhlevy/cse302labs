@@ -148,30 +148,26 @@ def tac_to_asm(tac_instrs):
                 f'retq'])
     return asm
 
-def compile_tac(tac: List[Instruction], fname: str, write: bool=True):
-    assert isinstance(tac, list) and len(tac) == 1, tac
-    tac = tac[0]
-    assert 'proc' in tac and tac['proc'] == '@main', tac
-    asm = ['\t' + line for line in tac_to_asm(tac['body'])]
-    if write:
-        asm[:0] = [f'\t.section .rodata',
-                   f'.lprintfmt:',
-                   f'\t.string "%ld\\n"',
-                   f'\t.text',
-                   f'\t.globl main',
-                   f'main:']
-        xname = fname[:-3] + '.exe'
-        sname = fname[:-3] + '.s'
-        with open(sname, 'w') as afp:
-            print(*asm, file=afp, sep='\n')
-        #print(f'{fname} -> {sname}')
+# def compile_tac(tac: List[Instruction], fname: str, write: bool=True):
+#     assert isinstance(tac, list) and len(tac) == 1, tac
+#     tac = tac[0]
+#     assert 'proc' in tac and tac['proc'] == '@main', tac
+#     asm = ['\t' + line for line in tac_to_asm(tac['body'])]
+#     if write:
+#         asm[:0] = [f'\t.section .rodata',
+#                    f'.lprintfmt:',
+#                    f'\t.string "%ld\\n"',
+#                    f'\t.text',
+#                    f'\t.globl main',
+#                    f'main:']
+#         xname = fname[:-3] + '.exe'
+#         sname = fname[:-3] + '.s'
+#         with open(sname, 'w') as afp:
+#             print(*asm, file=afp, sep='\n')
+#         #print(f'{fname} -> {sname}')
 
 
-def compile_tac_from_json(fname):
-    assert fname.endswith('.tac.json')
-    tjs = None
-    with open(fname, 'rb') as fp:
-        tjs = json.load(fp)
+def compile_tac(tjs):
     assert isinstance(tjs, list) and len(tjs) == 1, tjs
     tjs = tjs[0]
     assert 'proc' in tjs and tjs['proc'] == '@main', tjs
@@ -184,8 +180,11 @@ def compile_tac_from_json(fname):
                f'\t.text',
                f'\t.globl main',
                f'main:']
-    sname = fname[:-9] + '.s'
-    with open(sname, 'w') as afp:
-        print(*asm, file=afp, sep='\n')
-    #print(f'{fname} -> {sname}')
-    return sname
+    return asm
+
+
+    # sname = fname[:-9] + '.s'
+    # with open(sname, 'w') as afp:
+    #     print(*asm, file=afp, sep='\n')
+    # #print(f'{fname} -> {sname}')
+    # return sname
