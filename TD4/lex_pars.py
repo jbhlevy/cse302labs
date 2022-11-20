@@ -39,7 +39,6 @@ class Sloc:
         """
         Base error message function. This function will either be directly called to handle lexing errors or called by the parsing errors function. 
         """
-        if err is(None): print("HELLPPPP")
         err_msg = ''
         if self.source is not None:
             eol = self.source.data.rfind('\n', 0, self.lexpos)

@@ -82,7 +82,7 @@ class Node:
         self.sloc = sloc
 
     def lookup_variable_type(self, var, var_types):
-        print("TYPE CHECKING IS BACK:", var_types[0])
+        #print("TYPE CHECKING IS BACK:", var_types[0])
         for scope in reversed(var_types):
             if var in scope:
                 return scope[var]
@@ -670,16 +670,9 @@ class Call(Expression):
         else:
             self.type = self.lookup_variable_type(self.name, var_types)
             if self.args != []:
-                print(self.args)
+                #print(self.args)
                 for arg in self.args:
                     arg.type_check(var_types)
-
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #Make sure function call matches function declaration
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #Make sure function returns only when it is being assigned to something hahah 
-
-
 
 class Return(Statement):
     def __init__(self, sloc, operator: str, expression: Expression = None):

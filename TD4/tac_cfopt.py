@@ -40,20 +40,20 @@ class CFG:
     def block_inference(self, tac_file):
         self.block = dict()
 
-        cond_jumps = {'je', 'jnz', 'jl', 'jle', 'jnl', 'jnle', 'jge', 'jg'}
+        cond_jumps = {'je', 'jnz', 'jl', 'jle', 'jnl', 'jnle', 'jge', 'jg', 'jz'}
 
         # Add an entry label before first instruction if needed
-        print(f"\nLocation: block_inference function, tac_file = {tac_file}")
+        #print(f"\nLocation: block_inference function, tac_file = {tac_file}")
         if (tac_file[0].opcode != 'label'):
             lentry = ".Lentry_" + self.name
             tac_file.insert(0, Instruction('label', [lentry], None))
             self.entry_label = lentry
-            print("SELF.ENTRY_LABEL1 BELOW")
+            #print("SELF.ENTRY_LABEL1 BELOW")
             #print(self.entry_label)
         else:
             self.entry_label = tac_file[0].args[0]
-            print("SELF.ENTRY_LABEL2 BELOW")
-            print(self.entry_label)
+            #print("SELF.ENTRY_LABEL2 BELOW")
+            #print(self.entry_label)
 
         count_label = 0
         tac_add = []
@@ -66,12 +66,12 @@ class CFG:
                 new = Instruction('label', [f'.Ljmp_{self.name}_{count_label}'], None)
                 count_label += 1
                 tac_add.append((i + 1, new))
-                print("a")
+                #print("a")
                 #print(new)
 
             #Add explicit jmps for fall-throughs.
             if (i >= 1) and (tac_file[i].opcode == 'label') and (tac_file[i - 1].opcode != 'jmp'):
-                print("b:", tac_file[i])
+                #print("b:", tac_file[i])
                 new = Instruction('jmp', [tac_file[i].args[0]], None)
                 tac_add.append((i, new))
 
@@ -88,36 +88,36 @@ class CFG:
         b_instr = []
 
         # Start a new block at each label
-        print("start new block at each label in", tac_file)
+        #print("start new block at each label in", tac_file)
 
         for i in range(len(tac_file)):
-            print(tac_file[i])
+            #print(tac_file[i])
             #accumulate instructions in the block until...
             b_instr.append(tac_file[i])
             #...encountering a jump
             if tac_file[i].opcode == 'jmp':
                 # block until jmp instruction built
-                print("printing block a")
+                #print("printing block a")
                 new = Basicblock(b_instr)
                 self.block[new.label] = new
                 dest_label = tac_file[i].args[0]
-                print("printing labels")
-                print((new.label, dest_label))
+                #print("printing labels")
+                #print((new.label, dest_label))
                 edges.append((new.label, dest_label))
                 #print(edges)
                 b_instr = []
             #...a ret
             elif tac_file[i].opcode == 'ret':
-                print("printing block b")
+                #print("printing block b")
                 new = Basicblock(b_instr)
                 self.block[new.label] = new
                 b_instr = []
             #...or another label (cond jmps)
             elif tac_file[i].opcode in cond_jumps:
-                print("printing block c")
+                #print("printing block c")
                 source = b_instr[0].args[0]
                 dest_label = tac_file[i].args[1]
-                print("printing labels")
+                #print("printing labels")
                 #print((source, dest_label))
                 edges.append((source, dest_label))
                 #print(edges)   
@@ -128,14 +128,14 @@ class CFG:
             #print('before')
             #print(self.block[parent])
             self.block[parent].add_child(child)
-            print('printing keys')
+            #print('printing keys')
             #print(self.block.keys())
             self.block[child].add_parent(parent)
         #print("edges after children added")
         #print(edges)
         
 
-        print("block inference done")
+        #print("block inference done")
 
 
     def serialize(self, f=True):
@@ -145,7 +145,7 @@ class CFG:
         #print(self.block)
         #print(self.block[self.entry_label])
         entry_b = self.block[self.entry_label]
-        print('ENTRY_B BELOW')
+       # print('ENTRY_B BELOW')
         #print(entry_b)
         serialized_instrs = list(entry_b.instrs)
         serialized_labels = set([self.entry_label])
@@ -162,7 +162,7 @@ class CFG:
                     serialized_instrs.extend(self.block[child_label].instrs)
                     serialized_labels.add(child_label)
                     UCE(self.block[child_label])
-                    print("HERE")
+                    #print("HERE")
 
         # Start with the block with the entry label
         UCE(entry_b)
@@ -321,7 +321,7 @@ class CFG:
         self.jump_thread()
         self.perform_UCE()
         self.coalescing()
-        print("FINISHED CF optimization")
+        #print("FINISHED CF optimization")
 
 
 #-------------------------------------------------------------------------------
@@ -337,11 +337,11 @@ def optimization(filename):
         js_obj = json.load(fp)
 
     for decl in js_obj:
-        print(decl)
+        #print(decl)
         if "proc" in decl:
             tac = []
             for line in decl["body"]: 
-                print("LINE:", line, "\n")
+                #print("LINE:", line, "\n")
                 arg1 = None
                 arg2 = None
                 if (len(line["args"]) == 1):
@@ -354,10 +354,10 @@ def optimization(filename):
                     #print(arg2)
                 tac.append(bx2tac.Instruction(line["opcode"], [arg1, arg2], line["result"]))
 
-            print(f"CFG PRINTING, tac = {tac}")
+            #print(f"CFG PRINTING, tac = {tac}")
             if tac != []:
                 cfg = CFG(tac, decl["proc"])
-                print(cfg, "!!!!!!!!!!!!!!!!!!!!!!!!")
+                #print(cfg, "!!!!!!!!!!!!!!!!!!!!!!!!")
                 cfg.control_flow_optimization()
                 proc_instrs = cfg.serialize()
                 body = []
@@ -377,7 +377,7 @@ def optimization(filename):
             gvars.append(decl)
 
     # Write to file
-    print("Optimization done - Writing file")
+    #print("Optimization done - Writing file")
     all = gvars+procs
     with open(f'{filename[:-9]}.optimized_tac.json', 'w') as tac_file:
         json.dump(all, tac_file)
@@ -385,7 +385,7 @@ def optimization(filename):
     # for decl in all:
     #     print(decl)
 
-    print(f'[[ Output {filename[:-9]}.optimized_tac.json ]]')
+    #print(f'[[ Output {filename[:-9]}.optimized_tac.json ]]')
     tac_name = f'{filename[:-9]}.optimized_tac.json'
     return tac_name
 

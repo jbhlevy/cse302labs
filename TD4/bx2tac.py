@@ -59,7 +59,7 @@ class Prog:
                 self._emit_global_var(stmt.var.name, stmt.expr.value)
                 self._add_global_to_scope(stmt.var)
             for proc in program.procs:
-                print("proc name:", proc.name)
+                #print("proc name:", proc.name)
                 current_proc = ProcUnit(proc, self.scope)
                 #print("current proc:", current_proc)
                 self._emit_procedure(current_proc.name, current_proc.args, current_proc.body)
@@ -138,10 +138,10 @@ class ProcUnit:
 
     def _lookup(self, var: str, scope = -1):
         #Checking if there already exists a temporary for a given var
-        print("lookup", self.scope_stack)
+        #print("lookup", self.scope_stack)
         t = self.scope_stack[scope].get(var)
         if t is None:
-            print("t was None")
+            #print("t was None")
             t = self._check_global(scope, var)
 
 
@@ -149,11 +149,11 @@ class ProcUnit:
 
     def _check_global(self, scope, var):
         if scope == -len(self.scope_stack):
-            print("branch 1")
+            #print("branch 1")
             t = self._freshtemp()
             self.scope_stack[-1][var] = t
         else:
-            print("branch 2")
+            #print("branch 2")
             t = self._lookup(var, scope-1)
         return t
 
@@ -217,7 +217,7 @@ class ProcUnit:
 # ================================================================================
 
     def tmm_bool_expr(self, boolexpr: ast.Expression, Lt: str, Lf: str): 
-        print(boolexpr.__class__)
+        #print(boolexpr.__class__)
     #TMM for boolean expressions, the main idea is the following: 
     #jump to Lt if true, to Lf if false
 
@@ -230,8 +230,8 @@ class ProcUnit:
         #     raise ValueError(f"In tmm_bool_expr:unknown expr kind: {boolexpr.__class__}")
 
         if (boolexpr.__class__ is AST.Bool):
-            print("this makes no sense: ", int(boolexpr.__class__ is AST.Bool))
-            print("instance does work but ... ")
+            #print("this makes no sense: ", int(boolexpr.__class__ is AST.Bool))
+            #print("instance does work but ... ")
             if boolexpr.value == True:
                 self._emit('jmp', [Lt], None)
             elif boolexpr.value == False:
@@ -255,7 +255,7 @@ class ProcUnit:
 
         #no comprendo
         elif isinstance(boolexpr, ast.ExpressionBinOp):
-            print("Went into BINOP ")
+            #print("Went into BINOP ")
             if boolexpr.operator in {'==', '!=', '<', '<=', '>', '>='}:
                 largs = []
                 arg_target1 = self._freshtemp()
@@ -274,12 +274,12 @@ class ProcUnit:
                 self.tmm_bool_expr([boolexpr.right][0], Lt, Lf)
             elif boolexpr.operator == '||':
                 Li = self._fresh_label()
-                print()
+                #print()
                 self.tmm_bool_expr(boolexpr.left, Lt, Li)
                 self._emit('label', [Li], None)
                 self.tmm_bool_expr(boolexpr.right, Lt, Lf)
         else:
-            print("weird")
+            #"weird")
             raise ValueError(f"In tmm_bool_expr:unknown expr kind: {boolexpr.__class__}")
         # else:
         #     raise ValueError( f'In tmm_bool_expr:unknown expr kind: {boolexpr.__class__}')
@@ -341,7 +341,7 @@ class ProcUnit:
             self.tmm_expr(stmt.expr, target)
         elif isinstance(stmt, ast.Assign):
             target = self._lookup(stmt.lhs.name)
-            print("Assign target", target)
+            #print("Assign target", target)
             self.tmm_expr(stmt.rhs, target)
         elif isinstance(stmt, ast.Print):
             target = self._freshtemp()
@@ -351,9 +351,9 @@ class ProcUnit:
             Lt = self._fresh_label()
             Lf = self._fresh_label()
             Lo = self._fresh_label()
-            print("statement:", stmt.condition)
+            #print("statement:", stmt.condition)
             self.tmm_bool_expr(stmt.condition, Lt, Lf)
-            print("Label:", Lt)
+            #print("Label:", Lt)
             self._emit('label', [Lt], None)
             self.tmm_stmt(stmt.block)
             self._emit('jmp', [Lo], None)
@@ -361,11 +361,11 @@ class ProcUnit:
             self.tmm_stmt(stmt.ifrest)
             self._emit('label', [Lo], None)
         elif isinstance(stmt, ast.Block):
-            print('found block')
+            #print('found block')
             for stmt in stmt.stmts:
-                print(stmt)
+                #print(stmt)
                 self.tmm_stmt(stmt)
-                print(f"Finished with stmt {stmt}")
+                #print(f"Finished with stmt {stmt}")
         elif isinstance(stmt, ast.While):
             Lhead = self._fresh_label()
             Lbody = self._fresh_label()
@@ -390,12 +390,12 @@ class ProcUnit:
                     raise ValueError(f'Bad continue at line {stmt.sloc}')
                 self._emit('jmp', [self._continue_stack[-1]], None)
             else:
-                print(stmt)
+               # print(stmt)
                 raise ValueError(f'tmm_stmt: unknown stmt kind: {stmt.__class__}')
         elif isinstance(stmt, ast.Eval):
             callee = stmt.expression
-            print("called:", callee)
-            print('args', callee.args)
+            #print("called:", callee)
+            #print('args', callee.args)
             #Setting up parameters 
             p = 0
             for arg in callee.args:

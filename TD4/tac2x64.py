@@ -74,13 +74,13 @@ param_map = [
         f'%r9']
 
 def lookup_temp(var, temp_map, gvars, args, stack_size):
-    print("Reached lookup function", args)
+    #print("Reached lookup function", args)
     if var in gvars:
         return (temp_map, stack_size, f"{var[1:]}(%rip)")
     elif var in args:
-        print("Branch 2:", args.index(var))
+        #print("Branch 2:", args.index(var))
         if args.index(var) >= 6:
-            print("Condition checked")
+            #print("Condition checked")
             return (temp_map, stack_size, f"{16+8*(args.index(var)-6)}(%rbp)")
         else:
             if var not in temp_map:
@@ -110,17 +110,17 @@ def tac_to_asm(tac_instrs, gvars, name, proc_args, temp_map, stack_size):
         """
         Get the x64 instructions correspondign to the TAC instructions
         """
-        print(proc_args)
+       # print(proc_args)
         asm = []
         if proc_args != []:
-            print("Procedure has arguments")
+            #print("Procedure has arguments")
             for i in range(min(len(proc_args), 6)):
                 print(proc_args[i])
                 temp_map, stack_size, res = lookup_temp(proc_args[i], temp_map, gvars, proc_args, stack_size)
                 asm.append(f"\tmovq {param_map[i]}, {res}")
 
         for instr in tac_instrs:
-            print(instr)
+           # print(instr)
             opcode = instr.opcode
             args = instr.args
             result = instr.result
@@ -135,7 +135,7 @@ def tac_to_asm(tac_instrs, gvars, name, proc_args, temp_map, stack_size):
                 #Changes above assertion because of tac_cfoot.py
                 asm.append(f'{args[0][1:]}:')
             elif opcode == 'jmp':
-                print("jmp arg",args[0][1:])
+               # print("jmp arg",args[0][1:])
                 assert (len(args) == 2 or len(args) == 1)
                 #Changes above assertion because of tac_cfoot.py
                 asm.append(f'jmp {args[0][1:]}')
@@ -301,7 +301,7 @@ def compile_tac(fname):
             name = decl['proc']
             args = decl['args']
             body = [Instruction(instr["opcode"], instr["args"], instr["result"]) for instr in decl['body']]
-            print("args of proc", args)
+            #print("args of proc", args)
             proc_asm, stack, stack_size = tac_to_asm(
                 body, gvars, name[1:], args, stack, stack_size)
             asm.extend(proc_asm)
