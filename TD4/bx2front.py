@@ -31,6 +31,7 @@ def main():
         if not ast_object:
             raise SyntaxError(f"Error while parsing")
         ast_object.type_check([]) 
+        
 
 
 if __name__ == "__main__":

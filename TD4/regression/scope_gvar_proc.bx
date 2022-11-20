@@ -1,5 +1,0 @@
-// same name for global variable and procedure
-
-var main = 42 : int;
-
-def main() { }

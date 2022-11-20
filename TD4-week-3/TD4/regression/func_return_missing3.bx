@@ -1,9 +1,0 @@
-// missing return on some code paths
-
-def main() { }
-
-def get_42() : int {
-  while (true) {
-    return 42;
-  }
-}

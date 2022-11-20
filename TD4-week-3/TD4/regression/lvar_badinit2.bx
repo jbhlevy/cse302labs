@@ -1,5 +1,0 @@
-// circular initializer
-
-def main() {
-  var x = x + 10 : int;
-}

@@ -1,5 +1,0 @@
-// circular initializer (figure-eight)
-
-def main() {
-  var x = y, y = x : int;
-}

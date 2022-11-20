@@ -293,7 +293,7 @@ class Parser:
     def p_expr_call(self, p):
         """expr : IDENT LPAREN args RPAREN
         """
-        p[0] = ast.Call(self.sloc(p, 1), p[1], [p[3]])
+        p[0] = ast.Call(self.sloc(p, 1), p[1], p[3])
 
     def p_call_args(self, p):
         """args : 
@@ -302,9 +302,9 @@ class Parser:
         if len(p) == 1:
             p[0] = []
         elif len(p) == 2:
-            p[0] = p[1]
-        else:
             p[0] = [p[1]]
+        else:
+            p[0] = p[1]
             p[0].append(p[3])
 
     # ================== Statements =======================

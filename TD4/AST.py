@@ -82,6 +82,7 @@ class Node:
         self.sloc = sloc
 
     def lookup_variable_type(self, var, var_types):
+        print("TYPE CHECKING IS BACK:", var_types[0])
         for scope in reversed(var_types):
             if var in scope:
                 return scope[var]
@@ -283,7 +284,7 @@ class ExpressionBinOp(Expression):
 class Bool(Expression):
     def __init__(self, sloc, value: bool):
         super().__init__(sloc)
-        self.value = value
+        self.value = 1 if value else 0
         self.type = Type.BOOL
 
     def type_check(self, var_types):
@@ -300,6 +301,9 @@ class Bool(Expression):
     @property
     def expr_to_json(self):
         pass
+
+    def __str__(self):
+        return f"\nA Bool expression with value {self.value}, and type {self.type}"
 
 
 class Statement(Node):
@@ -662,12 +666,18 @@ class Call(Expression):
                 self.name = "__bx_print_int"
             elif self.args[0].type is Type.BOOL:
                 self.name = "__bx_print_bool"
+            self.type = Type.VOID
         else:
             self.type = self.lookup_variable_type(self.name, var_types)
-            if self.args != [[]]:
+            if self.args != []:
+                print(self.args)
                 for arg in self.args:
                     arg.type_check(var_types)
-        
+
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #Make sure function call matches function declaration
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #Make sure function returns only when it is being assigned to something hahah 
 
 
 
@@ -763,6 +773,7 @@ class Program(Node):
         if proc.name in var_scopes[0].keys():
             raise SyntaxError(f"Procedure {proc.name} already declared")
         var_scopes[0][proc.name] = proc.type
+    for proc in self.procs:
         proc.type_check(var_scopes)
     
     if 'main' not in names:

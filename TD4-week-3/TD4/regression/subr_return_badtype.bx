@@ -1,5 +1,0 @@
-// bad return type from proc
-
-def main() {
-  return 42;
-}
