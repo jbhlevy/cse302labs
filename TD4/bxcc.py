@@ -87,7 +87,7 @@ if __name__ == '__main__':
     ap.add_argument('--stop_asm', dest = 'stop_asm', action='store_true', default=False, help= 'Stop at the .s file')
     ap.add_argument('--accept.tac.json', dest = 'accept_tac_json', action='store_true', default=False, help='Accept the tac.json file')
     ap.add_argument('--no_opt', dest='no_opt', action='store_true', default=False, help='Perform compilation with no optimization')
-    ap.add_argument('fname',metavar='FILE', type=str, nargs=1, help='The BX file to compile, if accept.tac.json is not set')
+    p
 
     options = ap.parse_args(sys.argv[1:])
     main(options)
