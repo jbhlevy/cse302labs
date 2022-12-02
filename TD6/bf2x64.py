@@ -13,9 +13,10 @@ class Instruction:
         self.arithmetic = abs(arithmetic)
         if arithmetic < 0:
             self.operator = '-='
-        elif arithmetic >= 0:
+        elif arithmetic >= 0 and not p:
             self.operator = '+='
-        if p: self.operator = "print"
+        if arithmetic == 0 and p:
+            self.operator = "print"
 
     def __str__(self):
         if self.operator == "print":
@@ -55,7 +56,9 @@ def translate(program : list):
         curr_instr = next_instr
         index += 1
         print(offset_buffer, arithmetic_buffer)
-    emit(instr_list, offset_buffer, arithmetic_buffer)
+
+    if is_ptr(curr_instr):
+        emit(instr_list, offset_buffer, arithmetic_buffer)
 
     return instr_list, offset_buffer
 
@@ -99,18 +102,29 @@ def to_asm(instructions : list):
     asm = []
     asm.extend([f"\t.bss", 
                 f"buffer:", 
-                f"\t.zero 30000", 
+                f"\t.zero 30000\n", 
                 f"\t.text", 
                 f"\t.globl main", 
                 f"main:"
     ])
-
+    current_offset = 0
     for instruction in instructions:
         print("instrucion : ", instruction.offset)
-        cell = f"{instruction.offset}(%rip)"
+        if current_offset + instruction.offset < 0:
+            current_offset = 30000 + instruction.offset
+        elif current_offset + instruction.offset > 30000:
+            current_offset = 30000 - (current_offset + instruction.offset)
+
+        cell = f"(buffer+{instruction.offset})(%rip)"
         if instruction.operator == "+=":
-            asm.extend([f"\t mov {cell}, %al", 
+            asm.extend([f"\t xor %al, %al",
+                        f"\t mov {cell}, %al", 
+                        #f"\t movq %rax, %rdi",
+                        #f"\t call bf_print",
+                        #f"\t xorq %rdi, %rdi",
                         f"\t add ${instruction.arithmetic}, %al",
+                        #f"\t movq %rax, %rdi", 
+                        #f"\t callq bf_print",
                         f"\t mov %al, {cell}"])
             pass
         elif instruction.operator == "-=":
@@ -118,8 +132,12 @@ def to_asm(instructions : list):
                         f"\t sub ${instruction.arithmetic}, %al",
                         f"\t mov %al, {cell}"])
         elif instruction.operator == "print":
-            asm.extend([f"\t mov {cell}, %al",
+            asm.extend([f"\t xor %dil, %dil",
+                        f"\t mov {cell}, %dil",
                         f"\t call bf_print"])
+    
+
+    asm.extend([f"\tretq"])
 
     return asm
 
@@ -152,20 +170,24 @@ def _main():
     print("ASM GENERATION\n =========")
     for l in asm:
         print(l)
+    print(" ========= \nASM GENERATION")   
     assembly_name = sys.argv[1][:-2] + "s"
     print(assembly_name)
     with open(assembly_name, 'w') as fn:
         print(*asm, file=fn, sep='\n')
 
-    shell_command = f"gcc -o {sys.argv[1]} {assembly_name} bf_runtime.c"
+    shell_command = f"gcc -o {sys.argv[1][:-3]} {assembly_name} bf_runtime.c"
     gcc_stat = os.system(shell_command)
     if not (os.WIFEXITED(gcc_stat) and os.WEXITSTATUS(gcc_stat) == 0):
         print(f'gcc exited abnormally')
 
-    try:
-        program.execute(BFMemory())
-    except BFExit:
-        pass
+    cleanup = f"rm {assembly_name}"
+    os.system(cleanup)
+
+    # try:
+    #     program.execute(BFMemory())
+    # except BFExit:
+    #    pass
 
 # --------------------------------------------------------------------
 if __name__ == '__main__':

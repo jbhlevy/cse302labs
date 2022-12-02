@@ -1,0 +1,59 @@
+def main()
+{
+    var a = false : bool; 
+    var b = false : bool; 
+    var x = 29 : int; 
+    while(b == false)
+    {
+        if(a == true)
+        {
+                print(6);
+                a = false;
+        }
+        else
+        {
+                print(7);
+                x = x + 7;
+        }
+
+        if (x == 36)
+        {
+                b = true;
+                print(b);
+        }
+    }
+    print(0); 
+    var res = 0 : int; 
+	res = fun1(); 
+    print(res); 
+}
+
+def fun1() : int
+{   var a = false : bool; 
+    var b = false : bool; 
+    var x = 29 : int; 
+    while(b == false)
+    {
+        if(a == true)
+        {
+                print(6);
+                a = false;
+                return 0; 
+        }
+        else
+        {
+                print(7);
+                x = x + 7;
+                return 7; 
+        }
+
+        if (x == 36)
+        {
+                b = true;
+                print(b);
+                return 1; 
+        }
+        return -1; 
+    }
+    return 42; 
+}

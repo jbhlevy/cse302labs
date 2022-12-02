@@ -33,11 +33,18 @@ class Basicblock:
 class CFG:
     def __init__(self, tac_file, proc_name):
         self.name = proc_name[1:]
+        print("CREATIGN CFG")
+        #print(tac_file)
         self.block_inference(tac_file)
+        print("Finished creating CFG, current state of block : ")
+        print(self.block)
+
         
 
     # construct the basic blocks from the instructions
     def block_inference(self, tac_file):
+        #print(tac_file)
+    
         self.block = dict()
 
         cond_jumps = {'je', 'jnz', 'jl', 'jle', 'jnl', 'jnle', 'jge', 'jg', 'jz'}
@@ -45,11 +52,13 @@ class CFG:
         # Add an entry label before first instruction if needed
         #print(f"\nLocation: block_inference function, tac_file = {tac_file}")
         if (tac_file[0].opcode != 'label'):
-            lentry = ".Lentry_" + self.name
+            lentry = "%.Lentry_" + self.name
+            print(f"Old tac_file[0] {tac_file[0]}")
             tac_file.insert(0, Instruction('label', [lentry], None))
             self.entry_label = lentry
             #print("SELF.ENTRY_LABEL1 BELOW")
             #print(self.entry_label)
+            print(f"new tac_file 0 : {tac_file[0]}")
         else:
             self.entry_label = tac_file[0].args[0]
             #print("SELF.ENTRY_LABEL2 BELOW")
@@ -87,11 +96,19 @@ class CFG:
         edges = []
         b_instr = []
 
+        print("\n\n\n\nCREATING EDGES THAT DO NOT WORK\n =================== ")
+        print(f"current tac file = {tac_file}\n Entering loop...\n")
+
         # Start a new block at each label
         #print("start new block at each label in", tac_file)
 
         for i in range(len(tac_file)):
-            #print(tac_file[i])
+            #print(f"{tac_file[i]} : current edges, {edges}, current state of block {self.block}")
+            if "%.L0" in self.block.keys():
+                print("IT IS HERE DUMMY")
+
+
+
             #accumulate instructions in the block until...
             b_instr.append(tac_file[i])
             #...encountering a jump
@@ -103,6 +120,7 @@ class CFG:
                 dest_label = tac_file[i].args[0]
                 #print("printing labels")
                 #print((new.label, dest_label))
+                if new.label == "%.Lentry_fun1": print(f"added new block : {self.block[new.label]}")
                 edges.append((new.label, dest_label))
                 #print(edges)
                 b_instr = []
@@ -121,15 +139,20 @@ class CFG:
                 #print((source, dest_label))
                 edges.append((source, dest_label))
                 #print(edges)   
+        print("Finished firt loop...")
                    
         #print("edges before children added")
         #print(edges) 
+        h_edges = edges
         for (parent, child) in edges:
+            print(f"current edge : {(parent, child)}")
+            print(f"current state of block: {self.block}")
             #print('before')
             #print(self.block[parent])
             self.block[parent].add_child(child)
             #print('printing keys')
             #print(self.block.keys())
+            if parent == "%.L0": print((parent, child)) 
             self.block[child].add_parent(parent)
         #print("edges after children added")
         #print(edges)
@@ -150,6 +173,9 @@ class CFG:
         serialized_instrs = list(entry_b.instrs)
         serialized_labels = set([self.entry_label])
 
+        print("Before calling UCE ===== \n")
+        print(f"entry block : {entry_b}, serialized_labels : {serialized_labels}")
+
         def UCE(block):
             """
             Unreachable Code Elimination
@@ -157,7 +183,9 @@ class CFG:
             - all unreachable blocks are safely removed from the CFG
             """
             for child_label in block.child:
+                print(f"child label : {child_label}")
                 if child_label not in serialized_labels:
+                    print("Survived", child_label)
                     # Add current block to schedule
                     serialized_instrs.extend(self.block[child_label].instrs)
                     serialized_labels.add(child_label)
@@ -185,9 +213,11 @@ class CFG:
         return serialized_instrs
 
     def perform_UCE(self):
+        print("One go through perform UCE ========= \n")
         serialized = self.serialize(False)
-        #for i in serialized:
+        # for i in serialized:
         #    print(str(i))
+        
         self.block_inference(serialized)
 
     def jump_thread(self):
@@ -319,6 +349,8 @@ class CFG:
         3. Coalescing
         """
         self.jump_thread()
+        print("\n\n\n\t\t\tERROR ENTRY POINT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n\n\n\n\n")
+        print("current state of block : ", self.block)
         self.perform_UCE()
         self.coalescing()
         #print("FINISHED CF optimization")
@@ -358,6 +390,8 @@ def optimization(filename):
             if tac != []:
                 cfg = CFG(tac, decl["proc"])
                 #print(cfg, "!!!!!!!!!!!!!!!!!!!!!!!!")
+                print("\n\n\n\t\t\t\t\t\t\t\t\t\tERROR OCCURES IN THIS CFG ", decl["proc"])
+                print(tac)
                 cfg.control_flow_optimization()
                 proc_instrs = cfg.serialize()
                 body = []

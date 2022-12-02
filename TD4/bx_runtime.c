@@ -1,0 +1,14 @@
+#include <stdio.h>
+#include <stdint.h>
+/* Note: TAC int == C int64_t
+   This is because C int is usually only 32 bits. */
+void __bx_print_int(int64_t x)
+{
+  printf("%lld\n", x);
+}
+
+void __bx_print_bool(int64_t b)
+{
+    printf(b == 0 ? "false\n" : "true\n");
+}
+

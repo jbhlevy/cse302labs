@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+
 void bf_print(int64_t x)
 {
   printf("%lld\n", x);

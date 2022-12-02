@@ -1,0 +1,126 @@
+def fun1() : int
+{
+        while(b == false)
+        {
+                if(a == true)
+                {
+                        print(z+6);
+                        a = false;
+                        return 1; 
+                }
+                else
+                {
+                        print(c);
+                        x = x + z;
+                        return x;
+
+                }
+
+                if (x == 36)
+                {
+                        b = true;
+                        print(b);
+                        return 0; 
+                }
+                return 1; 
+        }
+	return x; 
+}
+
+
+
+//3 global ints and 3 global bools 
+var x = 0, y = 6: int; 
+var z = 12 : int; 
+
+var a = true, b = false : bool;
+var c = true : bool;
+
+def main()
+{
+	subroutine1();
+	subroutine2(a, b, x, z);
+	var res = 0 : int; 
+	res = fun1(); 
+	var res2 = false: bool; 
+	res2 = fun2(c);
+}
+
+
+def subroutine1()
+{
+	while(b == false)
+	{
+		if(a == true)
+		{
+			print(z+6);
+			a = false;
+		}
+		else 
+		{
+			print(c);
+			x = x + z;
+		}
+		
+		if (x == 36)
+		{
+			b = true;
+			print(b);
+		}
+	}
+}
+
+def subroutine2(a, b : bool, x, z : int)
+{
+        while(b == false)
+        {
+                if(a == true)
+                {
+                        print(y+6);
+                        a = false;
+                }
+                else
+                {
+                        print(c);
+                        x = x + z;
+                }
+
+                if (x == 36)
+                {
+                        b = true;
+                        print(b);
+                }
+        }
+}
+
+
+def fun2(b : bool) : bool
+{
+        while(b == false)
+        {
+                if(a == true)
+                {
+                        print(z+6);
+                        a = false;
+                        return a; 
+                }
+
+                else
+                {
+                        print(c);
+                        x = x + z;
+                        return c;
+                }
+
+                if (x == 36)
+                {
+                        b = true;
+                        print(b);
+                        return b; 
+                }
+                return false; 
+        }
+        return a;
+}
+			
+
