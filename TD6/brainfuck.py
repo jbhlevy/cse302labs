@@ -86,6 +86,9 @@ class BFIncrement(BFInstruction):
     def execute(self, memory : BFMemory):
         memory.increment()
 
+    def translate(self, memomry: BFMemory):
+        pass
+
 # --------------------------------------------------------------------
 class BFDecrement(BFInstruction):
     def execute(self, memory : BFMemory):
@@ -131,12 +134,19 @@ class BFInput(BFInstruction):
 class BFBlock(BFInstruction):
     def __init__(self, block : List[BFInstruction]):
         self._block = block
+        
+        for instr in self.block:
+            print("instruction in the block :",instr)
 
     block = property(lambda self : self._block)
 
     def execute(self, memory : BFMemory):
         for instruction in self.block:
             instruction.execute(memory)
+
+    def translate(self, memory : BFMemory):
+        for instruction in self.block:
+            instruction.translate(memory)
 
 # --------------------------------------------------------------------
 def _main():
@@ -147,6 +157,7 @@ def _main():
     with open(sys.argv[1]) as stream:
         program = stream.read()
     program = BFInstruction.parse(program)
+
 
     print(program)
 
