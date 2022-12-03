@@ -135,8 +135,8 @@ class BFBlock(BFInstruction):
     def __init__(self, block : List[BFInstruction]):
         self._block = block
         
-        for instr in self.block:
-            print("instruction in the block :",instr)
+        # for instr in self.block:
+        #     print("instruction in the block :",instr)
 
     block = property(lambda self : self._block)
 
